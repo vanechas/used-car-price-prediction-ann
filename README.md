@@ -1,77 +1,77 @@
 # 🚗 Used Car Price Prediction using Deep Artificial Neural Networks (ANN)
 
-Repositori ini berisi implementasi *end-to-end machine learning* dan *deep learning* untuk memprediksi harga jual mobil bekas (*selling price*) berdasarkan spesifikasi teknis dan riwayat kepemilikan kendaraan menggunakan **TensorFlow / Keras**.
+This repository contains an end-to-end machine learning and deep learning implementation to predict used car selling prices based on vehicle technical specifications and ownership history using **TensorFlow / Keras**.
 
 ---
 
-## 📌 Ringkasan Proyek
-Penentuan harga pasar mobil bekas dipengaruhi oleh berbagai faktor non-linear seperti tahun produksi, jarak tempuh, tenaga mesin (*max power*), serta torsi dan RPM. Proyek ini berfokus pada:
-1. **Data Cleaning & Regex Feature Extraction**: Mengurai kolom gabungan torsi menjadi variabel numerik terpisah (`torque_nm` dan `torque_rpm`).
-2. **Preprocessing**: Imputasi nilai hilang (*missing values*), *Label Encoding* fitur kategorikal, dan standarisasi fitur numerik menggunakan `StandardScaler`.
-3. **Model Comparison**: Membandingkan performa arsitektur *Deep ANN* bertingkat (aktivasi Sigmoid) terhadap arsitektur modifikasi (aktivasi ReLU, Dropout, Early Stopping, dan ReduceLROnPlateau).
+## 📌 Project Overview
+Used car market valuations depend on multiple non-linear factors such as manufacturing year, mileage, engine output (*max power*), torque, and engine speed. This project focuses on:
+1. **Data Cleaning & Regex Feature Extraction**: Parsing composite torque strings into distinct numerical variables (`torque_nm` and `torque_rpm`).
+2. **Preprocessing**: Handling missing values via median/mode imputation, encoding categorical attributes with `LabelEncoder`, and scaling numerical features with `StandardScaler`.
+3. **Model Comparison**: Benchmarking a deep multi-layer ANN architecture (Sigmoid activation) against a regularized model (ReLU activation, Dropout, EarlyStopping, and ReduceLROnPlateau).
 
 ---
 
-## 📊 Dataset & Fitur
-Data bersumber dari file tabular `2B.parquet` yang memuat informasi spesifikasi mobil:
-- **Target:** `selling_price` (harga jual mobil)
-- **Fitur Utama:** `name`, `year`, `mileage`, `engine`, `max_power`, `seats`, `fuel`, `transmission`, `owner`, `seller_type`, `Region`, `State or Province`, `City`.
-- **Fitur Baru (Hasil Ekstraksi):**
-  - `torque_nm`: Besaran torsi mesin (dalam Nm).
-  - `torque_rpm`: Putaran mesin saat torsi puncak tercapai (dalam rpm).
+## 📊 Dataset & Features
+The data is sourced from the tabular file `2B.parquet`, which includes detailed vehicle specifications:
+- **Target:** `selling_price` (used car sale price)
+- **Key Features:** `name`, `year`, `mileage`, `engine`, `max_power`, `seats`, `fuel`, `transmission`, `owner`, `seller_type`, `Region`, `State or Province`, `City`.
+- **Engineered Features (Extracted via Regex):**
+  - `torque_nm`: Engine torque output (in Nm).
+  - `torque_rpm`: Rotational speed at peak torque (in rpm).
 
 ---
 
-## 🛠️ Alur Preprocessing
-1. **Pemeriksaan & Imputasi Missing Values:** Median untuk variabel numerik dan modus untuk variabel kategorikal.
-2. **Pembersihan Torsi:** Menggunakan ekspresi reguler (*regex*) `r'(\d+)\s*Nm'` dan `r'@\s*(\d+)\s*rpm'`.
-3. **Encoding:** `LabelEncoder` untuk seluruh kolom kategorikal.
-4. **Data Splitting:** Pembagian dataset menjadi 70% Train, 15% Validation, dan 15% Test.
-5. **Normalisasi:** `StandardScaler` diaplikasikan secara terpisah pada fitur independen ($X$) dan target ($y$).
+## 🛠️ Preprocessing Pipeline
+1. **Missing Value Imputation:** Numerical features are imputed using the median, while categorical features use the mode.
+2. **Torque Parsing:** Regular expressions (`r'(\d+)\s*Nm'` and `r'@\s*(\d+)\s*rpm'`) extract torque magnitude and RPM thresholds.
+3. **Encoding:** Categorical variables are converted into numerical representations using `LabelEncoder`.
+4. **Data Splitting:** The dataset is split into 70% Training, 15% Validation, and 15% Test subsets using a fixed random seed.
+5. **Feature Scaling:** `StandardScaler` is applied independently to the input feature matrix ($X$) and target values ($y$).
 
 ---
 
-## 🧠 Eksperimen & Arsitektur Model
+## 🧠 Model Architectures & Experiments
 
 ### 1. Baseline Model (Sigmoid Deep ANN)
-- **Input:** 14 fitur
+- **Input:** 14 features
 - **Hidden Layers:**
-  - Dense (512 neuron, aktivasi `sigmoid`)
-  - Dense (256 neuron, aktivasi `sigmoid`)
-  - Dense (128 neuron, aktivasi `sigmoid`)
-- **Output:** Dense (1 neuron)
-- **Optimizer & Loss:** Adam ($lr = 0.01$), Loss: MSE, Metric: MAE
+  - Dense (512 units, `sigmoid` activation)
+  - Dense (256 units, `sigmoid` activation)
+  - Dense (128 units, `sigmoid` activation)
+- **Output:** Dense (1 unit, linear activation)
+- **Optimizer & Loss:** Adam ($lr = 0.01$), Loss: Mean Squared Error (MSE), Metric: Mean Absolute Error (MAE)
 - **Epochs:** 30
 
 ### 2. Modified Model (ReLU + Regularization)
-- **Input:** 14 fitur
+- **Input:** 14 features
 - **Hidden Layers:**
-  - Dense(256, `relu`) + Dropout(0.2)
-  - Dense(128, `relu`) + Dropout(0.2)
-  - Dense(64, `relu`) + Dropout(0.2)
-  - Dense(32, `relu`)
-- **Output:** Dense (1 neuron, linear)
-- **Call-backs:** `EarlyStopping` (patience=5) & `ReduceLROnPlateau` (factor=0.5, patience=3)
-- **Optimizer & Loss:** Adam ($lr = 0.0001$), Loss: MAE
-- **Epochs:** 100
+  - Dense (256 units, `relu` activation) + Dropout (0.2)
+  - Dense (128 units, `relu` activation) + Dropout (0.2)
+  - Dense (64 units, `relu` activation) + Dropout (0.2)
+  - Dense (32 units, `relu` activation)
+- **Output:** Dense (1 unit, linear activation)
+- **Callbacks:** `EarlyStopping` (patience = 5, restore best weights) and `ReduceLROnPlateau` (factor = 0.5, patience = 3, min_lr = 1e-5)
+- **Optimizer & Loss:** Adam ($lr = 0.0001$), Loss: MAE, Metric: MAE
+- **Epochs:** Up to 100
 
 ---
 
-## 📈 Hasil Evaluasi Performa (Test Set)
+## 📈 Evaluation & Performance Comparison (Test Set)
 
-| Metrik Evaluasi | Baseline Model (Sigmoid) | Modified Model (ReLU + Dropout) |
+| Metric | Baseline Model (Sigmoid) | Modified Model (ReLU + Dropout) |
 | :--- | :---: | :---: |
 | **Test Loss** | **0.0646** | 0.1973 |
 | **Test MAE** | **0.1644** | 0.1973 |
-| **$R^2$ Score** | **0.9277 (92.8%)** | 0.8352 (83.5%) |
+| **$R^2$ Score** | **0.9277 (~92.8%)** | 0.8352 (~83.5%) |
 
-> **Analisis:** Model dasar dengan aktivasi bertingkat menghasilkan akurasi yang lebih unggul ($R^2 \approx 92.8\%$) dalam menangkap dinamika regresi harga mobil dibandingkan model modifikasi pada konfigurasi parameter ini.
+> **Analysis:** The baseline multi-layer Sigmoid network achieved superior predictive accuracy ($R^2 \approx 92.77\%$), outperforming the regularized ReLU architecture on this normalized tabular dataset under the tested hyperparameters.
 
 ---
 
-## 📁 Struktur File
+## 📁 Repository Structure
 ```text
-├── 2B.parquet              # Dataset mentah
-├── 2BSolution.ipynb        # Jupyter Notebook eksperimen
-└── README.md               # Dokumentasi proyek
+├── 2B.parquet              # Raw tabular dataset
+├── 2BSolution.ipynb        # Data preparation, model training, and evaluation notebook
+└── README.md               # Project documentation
 ```
